@@ -1,0 +1,146 @@
+/* General Layout */
+.login-container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  /* Left Side (Logo & Background) */
+  .login-left {
+    width: 50%;
+    background-color: #ffb8e0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 20px;
+  }
+  
+  .login-logo {
+    width: 320px;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  
+  .login-title {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.5;
+  }
+  
+  /* Right Side (Login Form) */
+  .login-right {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f3f4f6;
+    padding: 40px;
+  }
+  
+  /* Login Box */
+  .login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    border: 2px solid #ffb8e0;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .login-header {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  /* Positioning the icons inside input fields */
+.input-group {
+    position: relative;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 14px 16px;
+    padding-left: 40px; /* Space for left icons */
+    border: 1px solid #ffb8e0;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    outline: none;
+    transition: 0.3s;
+  }
+  
+  .input-field:focus {
+    border-color: #ec7fa9;
+    box-shadow: 0 0 5px rgba(236, 127, 169, 0.5);
+  }
+  
+  /* Email & Password Icons */
+  .email-icon,
+  .password-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #777;
+  }
+  
+  /* Eye Icon (Toggle Password Visibility) */
+  .eye-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 20px;
+    color: #777;
+    transition: 0.3s;
+  }
+  
+  .eye-icon:hover {
+    color: #333;
+  }
+  
+  /* Login Button */
+  .login-button {
+    width: 100%;
+    padding: 14px;
+    background-color: #ec7fa9;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .login-button:hover {
+    background-color: #e36f99;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .login-container {
+      flex-direction: column;
+    }
+    
+    .login-left {
+      width: 100%;
+      padding: 30px;
+    }
+  
+    .login-right {
+      width: 100%;
+      padding: 30px;
+    }
+  }
+  
