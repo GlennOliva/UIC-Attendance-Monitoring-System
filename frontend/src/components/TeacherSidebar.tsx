@@ -82,7 +82,7 @@ const Sidebar: React.FC = () => {
           to="/teacher/manage_records" 
           className={location.pathname === "/teacher/manage_records" ? "active" : ""}
         >
-          <i className="bx bxs-barcode icon"></i> MANAGE RECORDS
+          <i className="bx bxs-file icon"></i> MANAGE RECORDS
         </Link>
       </li>
     </ul>

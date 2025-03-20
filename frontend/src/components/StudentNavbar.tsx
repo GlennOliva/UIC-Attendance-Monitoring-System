@@ -12,7 +12,7 @@ const Navbar: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/login"); // Redirect to login page
+    navigate("/"); // Redirect to login page
   };
 
   const [userProfile, setAdminProfile] = useState<{ image: string; full_name: string } | null>(null);

@@ -17,7 +17,7 @@ const App = () => {
       <Route path='/admin/manage_student' element={<ManageStudent/>}/>
       <Route path='/admin/manage_teacher' element={<ManageTeacher/>}/>
       <Route path='/admin/manage_barcode' element={<ManageBarcode/>}/>
-      <Route path='/login' element={<Login/>}/>
+      <Route path='/' element={<Login/>}/>
     </Routes>
   );
 };

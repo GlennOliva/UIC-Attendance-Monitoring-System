@@ -1,45 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../css/style.css";
 import admin_image from "../assets/images/administrator.png";
-import { useNavigate } from "react-router-dom"; 
-
-
-
+import { useNavigate } from "react-router-dom";
+import UpdateAdminProfile from "./UpdateAdminProfile";
 
 const Navbar: React.FC = () => {
-  const navigate = useNavigate(); // ✅ Use inside the function component
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login"); // Redirect to login page
-  };
+  const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [userProfile, setAdminProfile] = useState<{ image: string; full_name: string, email: string, password: string } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const profileRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLUListElement | null>(null);
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  const [userProfile, setAdminProfile] = useState<{ image: string; full_name: string } | null>(null);
-
+  // Fetch admin profile on load
   useEffect(() => {
     const adminId = localStorage.getItem('admin_id'); // Retrieve the admin ID from local storage
 
     if (adminId) {
-        // Fetch admin profile data using the updated endpoint
-        fetch(`${apiUrl}admin/${adminId}`) // Adjusted endpoint to fetch by ID
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return res.json();
+        fetch(`${apiUrl}admin/${adminId}`)
+            .then(res => res.json())
+            .then(data => {
+              setAdminProfile(data[0] || null); // Assuming the response is an array
             })
-            .then(data => setAdminProfile(data[0] || null)) // Assuming the response is an array
             .catch(err => console.log(err));
     } else {
         console.log("Admin ID not found in local storage");
     }
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
-  
+  }, [apiUrl]);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/"); // Redirect to login page
+  };
 
   const toggleDropdown = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -67,9 +60,8 @@ const Navbar: React.FC = () => {
   return (
     <nav>
       <i className="bx bx-menu toggle-sidebar"></i>
-
-        {/* Search Form */}
-        <form action="#">
+       {/* Search Form */}
+       <form action="#">
         {/* <div className="form-group">
           <input type="text" placeholder="Search..." />
           <i className="bx bx-search icon"></i>
@@ -86,9 +78,6 @@ const Navbar: React.FC = () => {
       </a>
       <span className="divider"></span> */}
 
-
-
-      {/* Profile Dropdown */}
       <div className="profile" ref={profileRef} onClick={toggleDropdown}>
         <img src={admin_image} alt="Profile" />
         <ul className={`profile-link ${isDropdownOpen ? "show" : ""}`} ref={dropdownRef}>
@@ -98,17 +87,27 @@ const Navbar: React.FC = () => {
             </p>
           </li>
           <li>
-            <a href="#">
-              <i className="bx bxs-cog"></i> Settings
+            <a href="#" onClick={() => setIsModalOpen(true)}>
+              <i className="bx bxs-cog"></i> Update Profile
             </a>
           </li>
           <li>
-          <a href="#" onClick={handleLogout}>
+            <a href="#" onClick={handleLogout}>
               <i className="bx bxs-log-out-circle"></i> Logout
             </a>
           </li>
         </ul>
       </div>
+
+      {isModalOpen && userProfile && (
+        <UpdateAdminProfile
+          initialFullName={userProfile.full_name}
+          initialEmail={userProfile.email}
+          initialPassword={userProfile.password}
+          adminId={localStorage.getItem('admin_id') || ""}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </nav>
   );
 };
