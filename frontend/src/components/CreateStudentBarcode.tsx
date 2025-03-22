@@ -84,17 +84,18 @@ const CreateStudentBarcode: React.FC<CreateStudentBarcodeProps> = ({ onClose }) 
       });
   
       setSnackbar({ open: true, message: "Barcode successfully created!", severity: "success" });
-  
-      // Delay closing the modal to let the snackbar show first
+
+      // Delay closing the modal and then reload the page
       setTimeout(() => {
-        onClose();
+        onClose();  // Close modal
+        window.location.reload(); // Reload the page
       }, 2000); // Adjust the delay time if needed
     } catch (error) {
       console.error("Error saving barcode:", error);
       setSnackbar({ open: true, message: "Failed to save barcode. Please try again.", severity: "error" });
     }
-  };
-  
+};
+
   return (
     <div className="modal-overlay">
       <div className="modal-container">

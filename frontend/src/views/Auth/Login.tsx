@@ -58,7 +58,7 @@ const Login = () => {
         } else {
           localStorage.setItem("student_id", response.data.student.id);
           setSnackbar({ open: true, message: "Student Login Successful!", severity: "success" });
-          setTimeout(() => navigate("/student/dashboard"), 1500);
+          setTimeout(() => navigate("/student/view_barcode"), 1500);
         }
       }
     } catch (error: unknown) {

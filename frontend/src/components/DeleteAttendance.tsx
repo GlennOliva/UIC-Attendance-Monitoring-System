@@ -3,11 +3,11 @@ import axios from 'axios';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
-interface DeleteBarcodeProps {
+interface DeleteAttendanceProps {
   id: number; // Accept id as a prop
 }
 
-const DeleteBarcode: React.FC<DeleteBarcodeProps> = ({ id }) => {
+const DeleteAttendance: React.FC<DeleteAttendanceProps> = ({ id }) => {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" | "warning" | "info" }>({
     open: false,
     message: "",
@@ -17,14 +17,14 @@ const DeleteBarcode: React.FC<DeleteBarcodeProps> = ({ id }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   async function handleDeleteItem() {
-    if (!window.confirm("Are you sure you want to delete this Barcode?")) return;
+    if (!window.confirm("Are you sure you want to delete this Attendance?")) return;
 
     try {
-      setSnackbar({ open: true, message: "Deleting Barcode...", severity: "info" });
+      setSnackbar({ open: true, message: "Deleting Attendance...", severity: "info" });
 
-      await axios.delete(`${apiUrl}barcode/${id}`);
+      await axios.delete(`${apiUrl}delete_attendance/${id}`);
 
-      setSnackbar({ open: true, message: "Barcode deleted successfully!", severity: "success" });
+      setSnackbar({ open: true, message: "Attendance deleted successfully!", severity: "success" });
 
       setTimeout(() => {
         window.location.reload();
@@ -54,4 +54,4 @@ const DeleteBarcode: React.FC<DeleteBarcodeProps> = ({ id }) => {
   );
 };
 
-export default DeleteBarcode;
+export default DeleteAttendance;

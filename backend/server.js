@@ -278,6 +278,91 @@ app.get('/student', (request, response) => {
 });
 
 
+app.get('/student_assigned', (request, response) => {
+  const { teacher_id } = request.query; // Get teacher_id from request query
+
+  if (!teacher_id) {
+    return response.status(400).json({ error: "Teacher ID is required" });
+  }
+
+  db.query("SELECT * FROM tbl_student WHERE teacher_id = ?", [teacher_id], (error, data) => {
+    if (error) {
+      console.error("Database error:", error);
+      return response.status(500).json({ error: "Internal Server Error" });
+    }
+    return response.json(data);
+  });
+});
+
+
+app.get('/student_by_barcode', (req, res) => {
+  const { barcode } = req.query;
+
+  if (!barcode) return res.status(400).json({ error: "Barcode is required" });
+
+  db.query("SELECT * FROM tbl_student WHERE student_number = ?", [barcode], (error, result) => {
+    if (error) return res.status(500).json({ error: "Database error" });
+    if (result.length === 0) return res.status(404).json({ error: "Student not found" });
+    
+    res.json(result[0]); // Return student details
+  });
+});
+
+app.post("/create_attendance", (req, res) => {
+  const { student_id, teacher_id, status, time_in, time_out } = req.body;
+
+  if (!student_id || !teacher_id || !status || !time_in || !time_out) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const query = `
+    INSERT INTO tbl_attendance (student_id, teacher_id, status, time_in, time_out)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [student_id, teacher_id, status, time_in, time_out], (err, result) => {
+    if (err) {
+      console.error("Error inserting attendance:", err);
+      return res.status(500).json({ message: "Error recording attendance" });
+    }
+    res.status(201).json({ message: "Attendance successfully recorded!", id: result.insertId });
+  });
+});
+
+
+app.get('/fetch_attendance', (req, res) => {
+  const { teacher_id } = req.query;
+
+  if (!teacher_id) {
+    return res.status(400).json({ error: "Teacher ID is required" });
+  }
+
+  const query = `
+    SELECT 
+      a.id, 
+      a.student_id, 
+      s.full_name, 
+      a.status, 
+      a.time_in, 
+      a.time_out 
+    FROM tbl_attendance a
+    JOIN tbl_student s ON a.student_id = s.id
+    WHERE a.teacher_id = ?
+  `;
+
+  db.query(query, [teacher_id], (error, result) => {
+    if (error) return res.status(500).json({ error: "Database error" });
+    if (result.length === 0) return res.status(404).json({ error: "No attendance records found" });
+
+    res.json(result);
+  });
+});
+
+
+
+
+
+
 // Route to upload barcode
 app.post("/barcode", upload.single("barcode_image"), async (req, res) => {
   try {
@@ -437,6 +522,27 @@ app.delete('/barcode/:id', (request, response) => {
   });
 });
 
+
+app.delete('/delete_attendance/:id', (request, response) => {
+  const id = request.params.id;
+  console.log("Deleting Attendance with ID: " + id);
+  
+  const sql = "DELETE FROM tbl_attendance WHERE id = ?";
+  
+  db.query(sql, [id], (error, result) => {
+      if (error) {
+          console.error("Error deleting Attendance:", error);
+          return response.status(500).json({ message: "Error deleting teacher" });
+      }
+
+      if (result.affectedRows === 0) {
+          return response.status(404).json({ message: "Teacher not found" });
+      }
+
+      return response.json({ message: "Attendance deleted successfully!" });
+  });
+});
+
 app.delete('/student/:id', (request, response) => {
   const id = request.params.id;
   console.log("Deleting student with ID: " + id);
@@ -458,6 +564,67 @@ app.delete('/student/:id', (request, response) => {
 });
 
 
+
+app.get('/fetch_attendance_by_id', (req, res) => {
+  const { attendance_id } = req.query;
+
+  if (!attendance_id) {
+    return res.status(400).json({ error: "Attendance ID is required" });
+  }
+
+  db.query("SELECT * FROM tbl_attendance WHERE id = ?", [attendance_id], (error, result) => {
+    if (error) return res.status(500).json({ error: "Database error" });
+    if (result.length === 0) return res.status(404).json({ error: "Attendance not found" });
+
+    res.json(result[0]);
+  });
+});
+
+
+app.post('/update_attendance', (req, res) => {
+  const { id, time_in, time_out, status } = req.body;
+
+  if (!id || !time_in || !time_out || !status) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  db.query(
+    "UPDATE tbl_attendance SET time_in = ?, time_out = ?, status = ? WHERE id = ?",
+    [time_in, time_out, status, id],
+    (error, result) => {
+      if (error) return res.status(500).json({ error: "Database error" });
+      res.json({ message: "Attendance updated successfully!" });
+    }
+  );
+});
+
+
+app.get('/dashboard_attendance', (req, res) => {
+  const { teacher_id } = req.query;
+
+  if (!teacher_id) {
+    return res.status(400).json({ error: "Teacher ID is required" });
+  }
+
+  const query = `
+    SELECT 
+      COUNT(*) AS total_students,
+      SUM(CASE WHEN a.status = 'Late' THEN 1 ELSE 0 END) AS late_students,
+      SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS absent_students,
+      SUM(CASE WHEN a.status = 'Excuse' THEN 1 ELSE 0 END) AS excuse_students,
+      SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS present_students
+    FROM tbl_attendance a
+    WHERE a.teacher_id = ?
+  `;
+
+  db.query(query, [teacher_id], (error, result) => {
+    if (error) return res.status(500).json({ error: "Database error" });
+
+    if (result.length === 0) return res.status(404).json({ error: "No records found" });
+
+    res.json(result[0]); // Return counts
+  });
+});
 
 
 
@@ -481,6 +648,133 @@ app.get('/teacher/:id', (request, response) => {
         return response.json(data);
     });
 });
+
+
+app.put("/teacher/update/:teacherId", upload.single("image"), (req, res) => {
+  const { teacherId } = req.params;
+  const { full_name, email, password, department } = req.body;
+  const image = req.file ? req.file.filename : null; // Get uploaded image filename
+
+  if (!full_name || !email || !password || !department) {
+    return res.status(400).json({ message: "All fields are required!" });
+  }
+
+  // Dynamically construct SQL query
+  let updateQuery = `
+    UPDATE tbl_teacher 
+    SET full_name = ?, email = ?, password = ?, department = ? 
+    ${image ? ", image = ?" : ""} 
+    WHERE id = ?
+  `;
+
+  let values = image
+    ? [full_name, email, password, department, image, teacherId]
+    : [full_name, email, password, department, teacherId];
+
+  db.query(updateQuery, values, (err, result) => {
+    if (err) {
+      console.error("Error updating profile:", err);
+      return res.status(500).json({ message: "Error updating profile!" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Teacher not found!" });
+    }
+
+    res.status(200).json({ message: "Profile updated successfully!" });
+  });
+});
+
+
+app.put("/student/update/:studentId", upload.single("image"), (req, res) => {
+  const { studentId } = req.params;
+  const { student_number,full_name, email, password, department, course } = req.body;
+  const image = req.file ? req.file.filename : null; // Get uploaded image filename
+
+  if (!student_number || !full_name || !email || !password || !department ||!course ) {
+    return res.status(400).json({ message: "All fields are required!" });
+  }
+
+  // Dynamically construct SQL query
+  let updateQuery = `
+  UPDATE tbl_student 
+  SET student_number = ?, full_name = ?, email = ?, password = ?, department = ?, course = ?
+  ${image ? ", image = ?" : ""} 
+  WHERE id = ?
+`;
+
+
+  let values = image
+    ? [student_number,full_name, email, password, department, course, image, studentId]
+    : [student_number, full_name, email, password, department, course, studentId];
+
+  db.query(updateQuery, values, (err, result) => {
+    if (err) {
+      console.error("Error updating profile:", err);
+      return res.status(500).json({ message: "Error updating profile!" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Teacher not found!" });
+    }
+
+    res.status(200).json({ message: "Profile updated successfully!" });
+  });
+});
+
+
+
+app.get('/view_barcode', (req, res) => {
+  const student_id = req.query.student_id;
+
+  if (!student_id) {
+      return res.status(400).json({ error: "Student ID is required" });
+  }
+
+  const sql = "SELECT * FROM tbl_barcode WHERE student_id = ? LIMIT 1";
+  db.query(sql, [student_id], (err, result) => {
+      if (err) {
+          console.error("Error fetching barcode:", err);
+          return res.status(500).json({ error: "Server error" });
+      }
+
+      if (result.length === 0) {
+          return res.status(404).json({ error: "No barcode found for this student" });
+      }
+
+      res.json(result[0]); // Return the barcode data
+  });
+});
+
+
+// View Attendance with Teacher's Name
+app.get("/view_attendance", (req, res) => {
+  const { student_id } = req.query;
+  if (!student_id) {
+    return res.status(400).json({ error: "Student ID is required" });
+  }
+
+  const query = `
+    SELECT 
+      a.id, 
+      a.student_id, 
+      a.status, 
+      a.time_in, 
+      a.time_out, 
+      t.full_name AS teacher_name
+    FROM tbl_attendance a
+    JOIN tbl_teacher t ON a.teacher_id = t.id
+    WHERE a.student_id = ? `;
+
+  db.query(query, [student_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching attendance:", err);
+      return res.status(500).json({ error: "Database query failed" });
+    }
+    res.json(results);
+  });
+});
+
 
 
 app.get('/student/:id', (request, response) => {

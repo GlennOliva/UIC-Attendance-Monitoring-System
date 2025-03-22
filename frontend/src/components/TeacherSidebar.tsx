@@ -60,10 +60,10 @@ const Sidebar: React.FC = () => {
 
       <li>
         <Link 
-          to="/teacher/manage_assigned_students" 
-          className={location.pathname === "/teacher/manage_assigned_students" ? "active" : ""}
+          to="/teacher/manage_records" 
+          className={location.pathname === "/teacher/manage_records" ? "active" : ""}
         >
-          <i className="bx bxs-group icon"></i> MANAGE ASSIGNED STUDENTS
+          <i className="bx bxs-file icon"></i> ASSIGNED STUDENTS
         </Link>
       </li>
 
@@ -77,14 +77,7 @@ const Sidebar: React.FC = () => {
       </li>
 
 
-      <li>
-        <Link 
-          to="/teacher/manage_records" 
-          className={location.pathname === "/teacher/manage_records" ? "active" : ""}
-        >
-          <i className="bx bxs-file icon"></i> MANAGE RECORDS
-        </Link>
-      </li>
+      
     </ul>
     </section>
   );

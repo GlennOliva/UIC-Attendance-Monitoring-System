@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../css/style.css";
-import admin_image from "../assets/images/administrator.png";
 import { useNavigate } from "react-router-dom"; 
+import UpdateTeacherProfile from "./UpdateTeacherProfile";
 
 const Navbar: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -14,9 +14,13 @@ const Navbar: React.FC = () => {
     localStorage.clear();
     navigate("/"); // Redirect to login page
   };
+
+  const [isModalOpen,setIsModalOpen] = useState(false);
+
+
   
 
-  const [userProfile, setAdminProfile] = useState<{ image: string; full_name: string } | null>(null);
+  const [userProfile, setAdminProfile] = useState<{ image: string; full_name: string, email: string, password: string, department: string, } | null>(null);
 
   useEffect(() => {
     const adminId = localStorage.getItem('teacher_id'); // Retrieve the admin ID from local storage
@@ -62,6 +66,8 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
+
+
   return (
     <nav>
       <i className="bx bx-menu toggle-sidebar"></i>
@@ -88,7 +94,7 @@ const Navbar: React.FC = () => {
 
       {/* Profile Dropdown */}
       <div className="profile" ref={profileRef} onClick={toggleDropdown}>
-        <img src={admin_image} alt="Profile" />
+        <img src={`${apiUrl}uploads/${userProfile?.image}`}  alt="Profile" />
         <ul className={`profile-link ${isDropdownOpen ? "show" : ""}`} ref={dropdownRef}>
           <li>
             <p style={{ fontSize: "12px", margin: "4px", paddingLeft: "10px" }}>
@@ -96,8 +102,8 @@ const Navbar: React.FC = () => {
             </p>
           </li>
           <li>
-            <a href="#">
-              <i className="bx bxs-cog"></i> Settings
+            <a href="#" onClick={() => setIsModalOpen(true)}>
+              <i className="bx bxs-cog"></i> Update Profile
             </a>
           </li>
           <li>
@@ -107,6 +113,18 @@ const Navbar: React.FC = () => {
           </li>
         </ul>
       </div>
+
+      {isModalOpen && userProfile && (
+        <UpdateTeacherProfile
+          initialFullName={userProfile.full_name}
+          initialEmail={userProfile.email}
+          initialPassword={userProfile.password}
+          initialImage={userProfile.image}
+          initialDepartment={userProfile.department}
+          teacherId={localStorage.getItem('teacher_id') || ""}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </nav>
   );
 };

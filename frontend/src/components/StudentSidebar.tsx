@@ -47,14 +47,7 @@ const Sidebar: React.FC = () => {
 
 
 <ul className="side-menu">
-      <li>
-        <Link 
-          to="/student/dashboard" 
-          className={location.pathname === "/student/dashboard" ? "active" : ""}
-        >
-          <i className="bx bxs-dashboard icon"></i> Dashboard
-        </Link>
-      </li>
+
 
       <li className="divider" data-text="STUDENT MANAGMENT">LEARNING</li>
 
