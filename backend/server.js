@@ -8,6 +8,7 @@ const { error } = require("console");
 const app = express();
 app.use(cors());
 app.use(bodyparser.json());
+require('dotenv').config();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -24,10 +25,10 @@ app.use('/uploads', express.static('uploads'));
 
 // MySQL Connection
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "attendance_monitoring",
+  host: process.env.DB_HOST,  
+  user: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 db.connect((err) => {
