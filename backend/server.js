@@ -23,6 +23,13 @@ const upload = multer({ storage: storage });
 
 app.use('/uploads', express.static('uploads'));
 
+// Enable CORS for all origins or restrict it to specific origin(s)
+app.use(cors({
+  origin: 'https://uic-attendance-monitoring-system.vercel.app/', // Replace with your frontend origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Include PUT, DELETE, and OPTIONS
+  credentials: true, // Allow cookies if needed
+}));
+
 // MySQL Connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,  
