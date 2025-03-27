@@ -31,15 +31,33 @@ const db = mysql.createConnection({
   user: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("Database connection error:", err);
-    return;
-  }
-  console.log("Connected to MySQL Database");
-});
+
+// Function to connect to MySQL and handle errors
+function handleDisconnect() {
+  db.connect((err) => {
+    if (err) {
+      console.error("Database connection failed:", err);
+      setTimeout(handleDisconnect, 5000); // Retry after 5 seconds
+    } else {
+      console.log("Connected to MySQL database.");
+    }
+  });
+
+  db.on("error", (err) => {
+    console.error("Database error:", err);
+    if (err.code === "PROTOCOL_CONNECTION_LOST") {
+      handleDisconnect(); // Reconnect on connection lost
+    } else {
+      throw err;
+    }
+  });
+}
+
+// Start the connection
+handleDisconnect();
 
 
 
