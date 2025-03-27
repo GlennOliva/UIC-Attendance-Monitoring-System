@@ -24,44 +24,23 @@ const upload = multer({ storage: storage });
 app.use('/uploads', express.static('uploads'));
 
 
-const dbConfig = {
-  host: process.env.DB_HOST,
+
+// MySQL Connection
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,  
   user: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-  multipleStatements: true // (Optional: Allows multiple queries in one statement)
-};
+});
 
-let db;
-
-function handleDisconnect() {
-  db = mysql.createConnection(dbConfig);
-
-  db.connect((err) => {
-      if (err) {
-          console.error("❌ Database connection failed:", err.message);
-          console.log("🔄 Retrying connection in 5 seconds...");
-          setTimeout(handleDisconnect, 5000); // Retry after 5 seconds
-      } else {
-          console.log("✅ Connected to MySQL database.");
-      }
-  });
-
-  db.on("error", (err) => {
-      console.error("⚠️ Database error:", err);
-      
-      if (["PROTOCOL_CONNECTION_LOST", "ECONNRESET", "ETIMEDOUT"].includes(err.code)) {
-          console.log("🔄 Reconnecting to MySQL...");
-          handleDisconnect();
-      } else {
-          throw err; // Crash the app for unknown errors (important for debugging)
-      }
-  });
-}
-
-// Start MySQL connection
-handleDisconnect();
+db.connect((err) => {
+  if (err) {
+    console.error("Database connection error:", err);
+    return;
+  }
+  console.log("Connected to MySQL Database");
+});
 
 
 
