@@ -168,16 +168,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
                   <option value="Late">Late</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label>Time In</label>
-                <input
-                  type="time"
-                  name="time_in"
-                  value={timeIn}
-                  onChange={(e) => setTimeIn(e.target.value)}
-                  required
-                />
-              </div>
+              
               <div className="form-group">
                 <label>Time Out</label>
                 <input
@@ -207,16 +198,20 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
             alignItems: "center",
             marginTop: "20px"
           }}>
-            <BarcodeScannerComponent
-              width={350}
-              height={350}
-              onUpdate={(_err, result) => {
-                if (result) {
-                  setScannedBarcode(result.getText());
-                  setScanning(false);
-                }
-              }}
-            />
+          <BarcodeScannerComponent
+  width={350}
+  height={350}
+  onUpdate={(_err, result) => {
+    if (result) {
+      const currentTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      setScannedBarcode(result.getText());
+      setTimeIn(currentTime); // Automatically set time-in
+      setScanning(false);
+      setSnackbar({ open: true, message: "Barcode scanned, time-in recorded!", severity: "success" });
+    }
+  }}
+/>
+
             <button onClick={() => setScanning(false)} style={{
               backgroundColor: "#dc3545",
               color: "white",
