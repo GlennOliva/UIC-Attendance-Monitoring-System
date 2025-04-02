@@ -77,7 +77,7 @@ const ManageAttendance = () => {
                 <thead>
                 <tr>
       <th>ID</th>
-      <th>Student ID</th>
+      <th>Student Number</th>
       <th>Name</th>
       <th>Time In</th> {/* New column for Time In */}
       <th>Time Out</th> {/* New column for Time Out */}
