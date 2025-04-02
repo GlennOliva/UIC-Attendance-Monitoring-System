@@ -46,9 +46,11 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
           if (res.data) {
             setStudentData(res.data);
   
-            // Automatically set Time In when data is fetched
+            // Automatically set Time In when student is fetched
             const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false });
             setTimeIn(currentTime);
+  
+            setSnackbar({ open: true, message: "Student found. Time In recorded!", severity: "success" });
           } else {
             setSnackbar({ open: true, message: "Student not found!", severity: "error" });
           }
@@ -59,6 +61,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
         });
     }
   }, [scannedBarcode, apiUrl]);
+  
   
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

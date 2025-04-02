@@ -315,8 +315,9 @@ app.get('/student_by_barcode', (req, res) => {
 app.post("/create_attendance", (req, res) => {
   const { student_id, teacher_id, status, time_in, time_out } = req.body;
 
-  if (!student_id || !teacher_id || !status || !time_in || !time_out) {
-    return res.status(400).json({ message: "All fields are required" });
+  // Validate required fields (time_out can be NULL initially)
+  if (!student_id || !teacher_id || !status || !time_in) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
   const query = `
@@ -324,7 +325,7 @@ app.post("/create_attendance", (req, res) => {
     VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [student_id, teacher_id, status, time_in, time_out], (err, result) => {
+  db.query(query, [student_id, teacher_id, status, time_in, time_out || null], (err, result) => {
     if (err) {
       console.error("Error inserting attendance:", err);
       return res.status(500).json({ message: "Error recording attendance" });
