@@ -312,19 +312,11 @@ app.get('/student_by_barcode', (req, res) => {
   });
 });
 
-const isValidTimeFormat = (time) => {
-  return /^([0-1]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(time);
-};
-
 app.post("/create_attendance", (req, res) => {
   const { student_id, teacher_id, status, time_in, time_out } = req.body;
 
   if (!student_id || !teacher_id || !status || !time_in || !time_out) {
     return res.status(400).json({ message: "All fields are required" });
-  }
-
-  if (!isValidTimeFormat(time_in) || !isValidTimeFormat(time_out)) {
-    return res.status(400).json({ message: "Invalid time format (HH:MM or HH:MM:SS required)" });
   }
 
   const query = `
@@ -340,7 +332,6 @@ app.post("/create_attendance", (req, res) => {
     res.status(201).json({ message: "Attendance successfully recorded!", id: result.insertId });
   });
 });
-
 
 
 app.get('/fetch_attendance', (req, res) => {

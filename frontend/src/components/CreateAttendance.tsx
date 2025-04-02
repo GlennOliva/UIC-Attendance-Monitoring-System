@@ -45,6 +45,10 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
         .then((res) => {
           if (res.data) {
             setStudentData(res.data);
+  
+            // Automatically set Time In when data is fetched
+            const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false });
+            setTimeIn(currentTime);
           } else {
             setSnackbar({ open: true, message: "Student not found!", severity: "error" });
           }
@@ -55,6 +59,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
         });
     }
   }, [scannedBarcode, apiUrl]);
+  
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -168,7 +173,16 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
                   <option value="Late">Late</option>
                 </select>
               </div>
-              
+              <div className="form-group">
+                <label>Time In</label>
+                <input
+                  type="time"
+                  name="time_in"
+                  value={timeIn}
+                  onChange={(e) => setTimeIn(e.target.value)}
+                  required
+                />
+              </div>
               <div className="form-group">
                 <label>Time Out</label>
                 <input
@@ -198,20 +212,16 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
             alignItems: "center",
             marginTop: "20px"
           }}>
-          <BarcodeScannerComponent
-  width={350}
-  height={350}
-  onUpdate={(_err, result) => {
-    if (result) {
-      const currentTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      setScannedBarcode(result.getText());
-      setTimeIn(currentTime); // Automatically set time-in
-      setScanning(false);
-      setSnackbar({ open: true, message: "Barcode scanned, time-in recorded!", severity: "success" });
-    }
-  }}
-/>
-
+            <BarcodeScannerComponent
+              width={350}
+              height={350}
+              onUpdate={(_err, result) => {
+                if (result) {
+                  setScannedBarcode(result.getText());
+                  setScanning(false);
+                }
+              }}
+            />
             <button onClick={() => setScanning(false)} style={{
               backgroundColor: "#dc3545",
               color: "white",
