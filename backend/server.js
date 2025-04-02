@@ -345,7 +345,8 @@ app.get('/fetch_attendance', (req, res) => {
   const query = `
     SELECT 
       a.id, 
-      a.student_id, 
+      a.student_id,
+      s.student_number, 
       s.full_name, 
       a.status, 
       a.time_in, 

@@ -10,6 +10,7 @@ import UpdateAttendance from '../../components/UpdateAttendance';
 interface Attendance {
     id: number;
     student_id: number;
+    student_number: number;
     full_name: string;
     date: string;
     status: string;
@@ -89,7 +90,7 @@ const ManageAttendance = () => {
   currentAttendance.map((record) => (
         <tr key={record.id}>
           <td>{record.id}</td>
-          <td>{record.student_id}</td>
+          <td>{record.student_number}</td>
           <td>{record.full_name}</td>
           <td>{record.time_in}</td>
           <td>{record.time_out}</td>
