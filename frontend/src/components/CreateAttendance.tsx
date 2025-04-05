@@ -27,7 +27,6 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
   const [studentData, setStudentData] = useState<Student | null>(null);
   const [attendanceStatus, setAttendanceStatus] = useState<string>("");
   const [timeIn, setTimeIn] = useState<string>("");
-  const [, setTimeOut] = useState<string>("");
   const [scanning, setScanning] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState({
@@ -45,17 +44,30 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
         .then((res) => {
           if (res.data) {
             setStudentData(res.data);
-            const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false });
+            // Format time as HH:MM without seconds
+            const now = new Date();
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
             setTimeIn(currentTime);
-            setTimeOut(""); // Clear any existing time out value
-            setSnackbar({ open: true, message: "Student found. Time In recorded!", severity: "success" });
+            setSnackbar({ 
+              open: true, 
+              message: "Student found. Time In recorded!", 
+              severity: "success" 
+            });
           } else {
-            setSnackbar({ open: true, message: "Student not found!", severity: "error" });
+            setSnackbar({ 
+              open: true, 
+              message: "Student not found!", 
+              severity: "error" 
+            });
           }
         })
         .catch((err) => {
           console.error("Error fetching student data:", err);
-          setSnackbar({ open: true, message: "Error fetching student data.", severity: "error" });
+          setSnackbar({ 
+            open: true, 
+            message: "Error fetching student data.", 
+            severity: "error" 
+          });
         });
     }
   }, [scannedBarcode, apiUrl]);
@@ -94,28 +106,43 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!studentData || !attendanceStatus || !timeIn) { // Removed timeOut from validation
-      setSnackbar({ open: true, message: "Please fill in all required fields.", severity: "warning" });
+    if (!studentData || !attendanceStatus || !timeIn) {
+      setSnackbar({ 
+        open: true, 
+        message: "Please fill in all required fields.", 
+        severity: "warning" 
+      });
       return;
     }
+
+    // Ensure time is in HH:MM format
+    const formattedTime = timeIn.includes(':') 
+      ? timeIn.split(':').slice(0, 2).join(':')
+      : timeIn;
 
     const formData = {
       student_id: studentData.id,
       teacher_id: teacherId,
       status: attendanceStatus,
-      time_in: timeIn,
-      time_out: null // Always set to null for initial entry
+      time_in: formattedTime,
+      time_out: null
     };
 
     try {
       await axios.post(`${apiUrl}create_attendance`, formData);
-      setSnackbar({ open: true, message: "Time In successfully recorded!", severity: "success" });
-      setTimeout(() => {
-        onClose();
-      }, 2000);
+      setSnackbar({ 
+        open: true, 
+        message: "Attendance recorded successfully!", 
+        severity: "success" 
+      });
+      setTimeout(() => onClose(), 2000);
     } catch (error) {
       console.error("Error submitting attendance:", error);
-      setSnackbar({ open: true, message: "Failed to record attendance.", severity: "error" });
+      setSnackbar({ 
+        open: true, 
+        message: "Failed to record attendance.", 
+        severity: "error" 
+      });
     }
   };
 
