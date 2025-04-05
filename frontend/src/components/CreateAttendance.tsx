@@ -15,6 +15,7 @@ interface Student {
   teacher_id: string;
   full_name: string;
   student_id: string;
+  student_number: string;
 }
 
 const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
@@ -26,7 +27,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
   const [studentData, setStudentData] = useState<Student | null>(null);
   const [attendanceStatus, setAttendanceStatus] = useState<string>("");
   const [timeIn, setTimeIn] = useState<string>("");
-  const [timeOut, setTimeOut] = useState<string>("");
+  const [, setTimeOut] = useState<string>("");
   const [scanning, setScanning] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState({
@@ -37,7 +38,6 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
 
   const apiUrl = import.meta.env.VITE_API_URL || "";
   const teacherId = localStorage.getItem("teacher_id") || '';
-
   useEffect(() => {
     if (scannedBarcode) {
       axios
@@ -45,11 +45,9 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
         .then((res) => {
           if (res.data) {
             setStudentData(res.data);
-  
-            // Automatically set Time In when student is fetched
             const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false });
             setTimeIn(currentTime);
-  
+            setTimeOut(""); // Clear any existing time out value
             setSnackbar({ open: true, message: "Student found. Time In recorded!", severity: "success" });
           } else {
             setSnackbar({ open: true, message: "Student not found!", severity: "error" });
@@ -61,6 +59,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
         });
     }
   }, [scannedBarcode, apiUrl]);
+
   
   
 
@@ -95,7 +94,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!studentData || !attendanceStatus || !timeIn || !timeOut) {
+    if (!studentData || !attendanceStatus || !timeIn) { // Removed timeOut from validation
       setSnackbar({ open: true, message: "Please fill in all required fields.", severity: "warning" });
       return;
     }
@@ -105,12 +104,12 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
       teacher_id: teacherId,
       status: attendanceStatus,
       time_in: timeIn,
-      time_out: timeOut,
+      time_out: null // Always set to null for initial entry
     };
 
     try {
       await axios.post(`${apiUrl}create_attendance`, formData);
-      setSnackbar({ open: true, message: "Attendance successfully recorded!", severity: "success" });
+      setSnackbar({ open: true, message: "Time In successfully recorded!", severity: "success" });
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -158,8 +157,8 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="form-group">
-                <label>Student ID</label>
-                <input type="text" name="student_id" value={studentData.id} readOnly />
+                <label>Student Number</label>
+                <input type="text" name="student_id" value={studentData.student_number} readOnly />
               </div>
               <div className="form-group">
                 <label>Attendance Status</label>
@@ -191,10 +190,14 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
                 <input
                   type="time"
                   name="time_out"
-                  value={timeOut}
-                  onChange={(e) => setTimeOut(e.target.value)}
-                  required
+                  value=""
+                  disabled
+                  placeholder="Will be set later"
+                  style={{ cursor: "not-allowed", backgroundColor: "#f5f5f5" }}
                 />
+                <small style={{ color: '#666', display: 'block' }}>
+                  Time Out will be recorded separately
+                </small>
               </div>
             </div>
             <div className="button-group">

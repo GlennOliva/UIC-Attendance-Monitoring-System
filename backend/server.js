@@ -313,26 +313,55 @@ app.get('/student_by_barcode', (req, res) => {
 });
 
 app.post("/create_attendance", (req, res) => {
-  const { student_id, teacher_id, status, time_in, time_out } = req.body;
+  const { student_id, teacher_id, status, time_in } = req.body;
 
-  // Validate required fields (time_out can be NULL initially)
+  // Validate required fields (time_out is excluded from validation)
   if (!student_id || !teacher_id || !status || !time_in) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
+  // Additional validation - ensure time_in is valid
+  if (!isValidTime(time_in)) {
+    return res.status(400).json({ message: "Invalid Time In format" });
+  }
+
   const query = `
-    INSERT INTO tbl_attendance (student_id, teacher_id, status, time_in, time_out)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO tbl_attendance 
+    (student_id, teacher_id, status, time_in, time_out)
+    VALUES (?, ?, ?, ?, NULL)  -- Explicitly set time_out to NULL
   `;
 
-  db.query(query, [student_id, teacher_id, status, time_in, time_out || null], (err, result) => {
-    if (err) {
-      console.error("Error inserting attendance:", err);
-      return res.status(500).json({ message: "Error recording attendance" });
+  db.query(
+    query, 
+    [student_id, teacher_id, status, time_in], 
+    (err, result) => {
+      if (err) {
+        console.error("Error inserting attendance:", err);
+        return res.status(500).json({ 
+          message: "Error recording attendance",
+          error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+      }
+      
+      res.status(201).json({ 
+        success: true,
+        message: "Time In successfully recorded!", 
+        data: {
+          id: result.insertId,
+          student_id,
+          time_in,
+          recorded_at: new Date().toISOString()
+        }
+      });
     }
-    res.status(201).json({ message: "Attendance successfully recorded!", id: result.insertId });
-  });
+  );
 });
+
+// Helper function to validate time format (HH:MM)
+function isValidTime(timeString) {
+  const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  return timeRegex.test(timeString);
+}
 
 
 app.get('/fetch_attendance', (req, res) => {
