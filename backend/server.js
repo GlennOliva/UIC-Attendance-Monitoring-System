@@ -320,43 +320,33 @@ app.post("/create_attendance", (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
-  // Convert time to HH:MM format (remove seconds)
-  const formatTime = (timeString) => {
-    // Handle cases like "9:57" (add leading zero)
-    if (timeString.match(/^\d{1,2}:\d{2}$/)) {
-      const [hours, minutes] = timeString.split(':');
-      return `${hours.padStart(2, '0')}:${minutes}`;
-    }
-    // Handle cases with seconds "09:57:51"
-    else if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
-      return timeString.substring(0, 5);
-    }
-    return timeString; // fallback
-  };
-
-  const formattedTime = formatTime(time_in);
-
+  // Option 1: Provide empty string instead of NULL
   const query = `
     INSERT INTO tbl_attendance 
     (student_id, teacher_id, status, time_in, time_out)
-    VALUES (?, ?, ?, ?, NULL)
+    VALUES (?, ?, ?, ?, '')  -- Use empty string instead of NULL
   `;
+
+  // Option 2: Omit time_out from insert (if default is set in DB)
+  /* const query = `
+    INSERT INTO tbl_attendance 
+    (student_id, teacher_id, status, time_in)
+    VALUES (?, ?, ?, ?)  -- Skip time_out entirely
+  `; */
 
   db.query(
     query, 
-    [student_id, teacher_id, status, formattedTime],
+    [student_id, teacher_id, status, time_in], // Remove NULL from parameters
     (err, result) => {
       if (err) {
-        console.error("Error:", err);
+        console.error("Database Error:", err);
         return res.status(500).json({ 
           message: "Error recording attendance",
-          detail: process.env.NODE_ENV === 'development' ? err.message : undefined
+          detail: process.env.NODE_ENV === 'development' ? err.sqlMessage : undefined
         });
       }
       res.status(201).json({ 
-        message: "Time In successfully recorded!", 
-        id: result.insertId,
-        time_recorded: formattedTime
+        message: "Attendance recorded successfully!"
       });
     }
   );

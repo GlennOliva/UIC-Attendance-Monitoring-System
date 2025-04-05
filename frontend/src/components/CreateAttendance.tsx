@@ -125,7 +125,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
       teacher_id: teacherId,
       status: attendanceStatus,
       time_in: formattedTime,
-      time_out: null
+      time_out: ""
     };
 
     try {
