@@ -16,7 +16,6 @@ interface Student {
   full_name: string;
   student_id: string;
   student_number: string;
-  student_fullname: string;
 }
 
 const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
@@ -164,7 +163,7 @@ const CreateAttendance: React.FC<CreateAttendanceProps> = ({ onClose }) => {
 
               <div className="form-group">
                 <label>Student Full Name</label>
-                <input type="text" name="student_id" value={studentData.student_fullname} readOnly />
+                <input type="text" name="student_id" value={studentData.full_name} readOnly />
               </div>
 
               <div className="form-group">

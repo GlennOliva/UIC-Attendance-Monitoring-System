@@ -312,156 +312,35 @@ app.get('/student_by_barcode', (req, res) => {
   });
 });
 
-app.post("/create_attendance", async (req, res) => {
-  try {
-    const { student_id, teacher_id, status, time_in } = req.body;
+app.post("/create_attendance", (req, res) => {
+  const { student_id, teacher_id, status, time_in } = req.body;
 
-    // Validate required fields
-    if (!student_id || !teacher_id || !status || !time_in) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Missing required fields",
-        required_fields: ["student_id", "teacher_id", "status", "time_in"]
-      });
-    }
-
-    // Validate field types
-    if (typeof student_id !== 'string' || 
-        typeof teacher_id !== 'string' || 
-        typeof status !== 'string') {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid field types",
-        expected_types: {
-          student_id: "string",
-          teacher_id: "string",
-          status: "string",
-          time_in: "string (HH:MM)"
-        }
-      });
-    }
-
-    // Validate and normalize time format
-    const normalizedTime = validateAndNormalizeTime(time_in);
-    if (!normalizedTime) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Time In format",
-        expected_format: "HH:MM (24-hour format)",
-        examples: ["09:00", "13:30", "23:45"]
-      });
-    }
-
-    // Check if student exists (optional additional validation)
-    const studentExists = await checkStudentExists(student_id);
-    if (!studentExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found"
-      });
-    }
-
-    // Insert attendance record
-    const query = `
-      INSERT INTO tbl_attendance 
-      (student_id, teacher_id, status, time_in, time_out)
-      VALUES (?, ?, ?, ?, NULL)
-    `;
-
-    const [result] = await db.query(query, [
-      student_id, 
-      teacher_id, 
-      status, 
-      normalizedTime
-    ]);
-
-    res.status(201).json({ 
-      success: true,
-      message: "Attendance recorded successfully",
-      data: {
-        attendance_id: result.insertId,
-        student_id,
-        teacher_id,
-        time_in: normalizedTime,
-        recorded_at: new Date().toISOString()
-      }
-    });
-
-  } catch (error) {
-    console.error("Server error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      ...(process.env.NODE_ENV === 'development' && {
-        error: error.message,
-        stack: error.stack
-      })
-    });
-  }
-});
-
-// Improved time validation and normalization
-function validateAndNormalizeTime(timeString) {
-  if (typeof timeString !== 'string') return null;
-  
-  // Accepts both 12-hour and 24-hour formats
-  const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)?$/i;
-  if (!timeRegex.test(timeString)) return null;
-
-  // Convert to 24-hour format
-  const [time, period] = timeString.split(/\s+/);
-  let [hours, minutes] = time.split(':').map(Number);
-
-  if (period?.toUpperCase() === 'PM' && hours < 12) {
-    hours += 12;
-  } else if (period?.toUpperCase() === 'AM' && hours === 12) {
-    hours = 0;
-  }
-
-  // Format as HH:MM
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-}
-
-// Optional helper function to check student existence
-async function checkStudentExists(studentId) {
-  const [results] = await db.query(
-    "SELECT 1 FROM students WHERE id = ? LIMIT 1", 
-    [studentId]
-  );
-  return results.length > 0;
-}
-
-
-app.get('/fetch_attendance', (req, res) => {
-  const { teacher_id } = req.query;
-
-  if (!teacher_id) {
-    return res.status(400).json({ error: "Teacher ID is required" });
+  // Validate required fields (time_out is excluded)
+  if (!student_id || !teacher_id || !status || !time_in) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
   const query = `
-    SELECT 
-      a.id, 
-      a.student_id,
-      s.student_number, 
-      s.full_name, 
-      a.status, 
-      a.time_in, 
-      a.time_out 
-    FROM tbl_attendance a
-    JOIN tbl_student s ON a.student_id = s.id
-    WHERE a.teacher_id = ?
+    INSERT INTO tbl_attendance 
+    (student_id, teacher_id, status, time_in, time_out)
+    VALUES (?, ?, ?, ?, NULL)  -- Explicitly set time_out to NULL
   `;
 
-  db.query(query, [teacher_id], (error, result) => {
-    if (error) return res.status(500).json({ error: "Database error" });
-    if (result.length === 0) return res.status(404).json({ error: "No attendance records found" });
-
-    res.json(result);
-  });
+  db.query(
+    query, 
+    [student_id, teacher_id, status, time_in], 
+    (err, result) => {
+      if (err) {
+        console.error("Error inserting attendance:", err);
+        return res.status(500).json({ message: "Error recording attendance" });
+      }
+      res.status(201).json({ 
+        message: "Time In successfully recorded!", 
+        id: result.insertId 
+      });
+    }
+  );
 });
-
-
 
 
 
