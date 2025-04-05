@@ -343,6 +343,38 @@ app.post("/create_attendance", (req, res) => {
 });
 
 
+app.get('/fetch_attendance', (req, res) => {
+  const { teacher_id } = req.query;
+
+  if (!teacher_id) {
+    return res.status(400).json({ error: "Teacher ID is required" });
+  }
+
+  const query = `
+    SELECT 
+      a.id, 
+      a.student_id,
+      s.student_number, 
+      s.full_name, 
+      a.status, 
+      a.time_in, 
+      a.time_out 
+    FROM tbl_attendance a
+    JOIN tbl_student s ON a.student_id = s.id
+    WHERE a.teacher_id = ?
+  `;
+
+  db.query(query, [teacher_id], (error, result) => {
+    if (error) return res.status(500).json({ error: "Database error" });
+    if (result.length === 0) return res.status(404).json({ error: "No attendance records found" });
+
+    res.json(result);
+  });
+});
+
+
+
+
 
 
 // Route to upload barcode
